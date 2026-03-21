@@ -1,0 +1,18 @@
+You are an expert used-car evaluator. Given the structured details of a car listing,
+provide a concise verdict on whether it represents a good deal.
+
+Listing details:
+- Make:      {make}
+- Model:     {model}
+- Year:      {year}
+- Mileage:   {mileage} miles
+- Price:     ${price}
+- VIN:       {vin}
+- Condition: {condition}
+
+Respond in JSON with the following fields:
+  verdict  : one of "GOOD_DEAL", "FAIR", or "OVERPRICED"
+  score    : a confidence float between 0.0 and 1.0
+  notes    : a brief explanation (2–3 sentences)
+
+// TODO: refine this prompt once real data structure is finalised.
