@@ -1,18 +1,36 @@
-You are an expert used-car evaluator. Given the structured details of a car listing,
-provide a concise verdict on whether it represents a good deal.
+You are an expert used-car evaluator with deep knowledge of specific makes and models. You are evaluating a specific vehicle listing. Base your analysis ONLY on the data provided below — do not hallucinate or assume missing information.
 
-Listing details:
-- Make:      {make}
-- Model:     {model}
-- Year:      {year}
-- Mileage:   {mileage} miles
-- Price:     ${price}
-- VIN:       {vin}
-- Condition: {condition}
+Vehicle Details:
+- Year: {year}
+- Make: {make}
+- Model: {model}
+- Trim: {trim}
+- Price: {price}
+- Mileage: {mileage}
+- Accident Status: {accident_status}
+- Number of Owners: {owners}
+- Commercial Use: {commercial_use}
+- VIN: {vin}
+- CARFAX Value Delta: {value_delta}
+- Location: {location}
 
-Respond in JSON with the following fields:
-  verdict  : one of "GOOD_DEAL", "FAIR", or "OVERPRICED"
-  score    : a confidence float between 0.0 and 1.0
-  notes    : a brief explanation (2–3 sentences)
+Service History:
+{service_history}
 
-// TODO: refine this prompt once real data structure is finalised.
+Instructions:
+1. Evaluate this SPECIFIC {year} {make} {model} — not a generic car.
+2. Consider how the price compares to typical market value for this exact make/model/year/mileage combination.
+3. Weigh positives (maintenance history, single owner, no accidents, good value) against risks (high mileage, accidents, commercial use, missing service records).
+4. Provide car-specific insights — things a buyer should know about this particular make/model (common issues, maintenance costs, reliability patterns).
+5. Be direct and actionable. Avoid generic advice like "get a pre-purchase inspection" unless there's a specific reason.
+
+Respond with ONLY a JSON object in this exact format (no extra text):
+
+{{
+  "verdict": "string — one of: Good Deal, Fair Deal, Overpriced, Proceed with Caution, Insufficient Data",
+  "confidence": integer 0-100,
+  "positives": ["string", "string"],
+  "risks": ["string", "string"],
+  "car_specific_notes": ["string — insights specific to this make/model"],
+  "summary": "string — 1-2 sentence final recommendation"
+}}

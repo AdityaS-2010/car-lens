@@ -1,24 +1,51 @@
-# parser.py
-# Placeholder for the listing parser that normalizes raw scraped data.
-#
-# Future implementation notes:
-#   - Accept raw HTML or JSON scraped from a car listing page
-#   - Extract key fields: make, model, year, mileage, price, VIN, etc.
-#   - Return a normalized dict conforming to the schema in models/schemas.py
+from models.schemas import CarListing
 
 
-def parse_listing(raw_data: dict):
+def parse_listing(raw_data: dict) -> CarListing:
     """
-    Normalize raw car listing data into a structured format.
+    Normalize raw car listing data from the extension into a CarListing.
 
-    Args:
-        raw_data: Arbitrary dict of fields scraped from the listing page.
-
-    Returns:
-        A normalized dict ready for the AI client.
-
-    Note:
-        Placeholder only – raises NotImplementedError until implemented.
+    Handles missing fields gracefully — the extension may not always
+    extract every field from the page.
     """
-    # TODO: implement real field extraction and normalization
-    raise NotImplementedError("Listing parser is not yet implemented.")
+    return CarListing(
+        year=_int_or_none(raw_data.get("year")),
+        make=_str_or_none(raw_data.get("make")),
+        model=_str_or_none(raw_data.get("model")),
+        trim=_str_or_none(raw_data.get("trim")),
+        price=_float_or_none(raw_data.get("price")),
+        mileage=_float_or_none(raw_data.get("mileage")),
+        accident_status=raw_data.get("accident_status", "Unknown"),
+        owners=_int_or_none(raw_data.get("owners")),
+        commercial_use=bool(raw_data.get("commercial_use", False)),
+        vin=_str_or_none(raw_data.get("vin")),
+        service_history=raw_data.get("service_history", []),
+        location=_str_or_none(raw_data.get("location")),
+        value_delta=_str_or_none(raw_data.get("value_delta")),
+        source_url=_str_or_none(raw_data.get("source_url")),
+    )
+
+
+def _int_or_none(val) -> int | None:
+    if val is None:
+        return None
+    try:
+        return int(val)
+    except (ValueError, TypeError):
+        return None
+
+
+def _float_or_none(val) -> float | None:
+    if val is None:
+        return None
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return None
+
+
+def _str_or_none(val) -> str | None:
+    if val is None:
+        return None
+    s = str(val).strip()
+    return s if s else None
