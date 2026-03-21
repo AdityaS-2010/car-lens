@@ -26,9 +26,13 @@ def analyze():
     if not data:
         return jsonify({"error": "Request body must be valid JSON."}), 400
 
+    mode = data.pop("mode", "brief")
+    if mode not in ("brief", "detailed"):
+        mode = "brief"
+
     try:
         listing = parse_listing(data)
-        result = get_verdict(listing)
+        result = get_verdict(listing, mode=mode)
         return jsonify(result), 200
     except Exception as e:
         traceback.print_exc()
@@ -40,6 +44,7 @@ def analyze():
             "risks": [],
             "car_specific_notes": [],
             "summary": "The analysis could not be completed. Please try again.",
+            "mode": mode,
         }), 500
 
 

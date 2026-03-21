@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Optional
 
 
@@ -20,6 +21,7 @@ class CarListing:
     location: Optional[str] = None
     value_delta: Optional[str] = None
     source_url: Optional[str] = None
+    damage_report: Optional[str] = None
 
     def to_prompt_dict(self) -> dict:
         """Return a dict formatted for the AI prompt template."""
@@ -37,6 +39,8 @@ class CarListing:
             "service_history": "\n".join(f"  - {s}" for s in self.service_history) if self.service_history else "None available",
             "location": self.location or "Unknown",
             "value_delta": self.value_delta or "N/A",
+            "damage_report": self.damage_report or "No damage report available",
+            "today": date.today().strftime("%B %d, %Y"),
         }
 
 
@@ -49,4 +53,7 @@ class AnalysisResponse:
     positives: list[str] = field(default_factory=list)
     risks: list[str] = field(default_factory=list)
     car_specific_notes: list[str] = field(default_factory=list)
+    damage_analysis: str = ""
+    ownership_costs: str = ""
+    market_comparison: str = ""
     summary: str = ""

@@ -1,5 +1,7 @@
 You are an expert used-car evaluator with deep knowledge of specific makes and models. You are evaluating a specific vehicle listing. Base your analysis ONLY on the data provided below — do not hallucinate or assume missing information.
 
+IMPORTANT: Today's date is {today}. All service dates should be interpreted relative to this date. Dates in 2025 and 2026 are NOT in the future.
+
 Vehicle Details:
 - Year: {year}
 - Make: {make}

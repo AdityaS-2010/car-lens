@@ -1,20 +1,146 @@
-/* overlay.css — CarLens floating panel */
+/* overlay.css — CarLens floating panel (Option A: Card Stack) */
+
+/* ── Full-Page Aura (Google Lens style) ───────────────────────────────── */
+
+@property --carlens-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+#carlens-aura {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2147483646;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#carlens-aura.active {
+  display: block;
+}
+
+/* Subtle thin gradient border — Google Lens style */
+#carlens-aura::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 3px solid transparent;
+  border-image: linear-gradient(
+    var(--carlens-angle, 0deg),
+    #4285f4,
+    #34a853,
+    #fbbc04,
+    #ea4335,
+    #4285f4
+  ) 1;
+  animation: carlens-border-spin 4s linear infinite;
+}
+
+@keyframes carlens-border-spin {
+  to { --carlens-angle: 360deg; }
+}
+
+/* Very soft inward glow — subtle, not distracting */
+#carlens-aura::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow:
+    inset 0 0 60px rgba(66, 133, 244, 0.08),
+    inset 0 0 120px rgba(66, 133, 244, 0.04);
+  animation: carlens-aura-pulse 3s ease-in-out infinite;
+}
+
+@keyframes carlens-aura-pulse {
+  0%   { box-shadow: inset 0 0 40px rgba(66, 133, 244, 0.06), inset 0 0 100px rgba(66, 133, 244, 0.03); }
+  50%  { box-shadow: inset 0 0 80px rgba(66, 133, 244, 0.1), inset 0 0 160px rgba(66, 133, 244, 0.05); }
+  100% { box-shadow: inset 0 0 40px rgba(66, 133, 244, 0.06), inset 0 0 100px rgba(66, 133, 244, 0.03); }
+}
+
+/* ── Panel ───────────────────────────────────────────────────────────── */
 
 #carlens-overlay {
   position: fixed;
   top: 16px;
   right: 16px;
   z-index: 2147483647;
-  width: 360px;
-  max-height: 80vh;
+  width: 380px;
+  min-width: 300px;
+  min-height: 150px;
+  max-height: 90vh;
   overflow-y: auto;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  overflow-x: hidden;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
   color: #202124;
   animation: carlens-fadein 0.3s ease;
+}
+
+/* Glow effect on panel during loading */
+#carlens-overlay.carlens-analyzing {
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 0 40px rgba(66, 133, 244, 0.2),
+    0 0 80px rgba(66, 133, 244, 0.1);
+  transition: box-shadow 0.5s ease;
+}
+
+/* ── Resize Handles ──────────────────────────────────────────────────── */
+
+.carlens-resize-handle {
+  position: absolute;
+  z-index: 10;
+}
+.carlens-resize-n {
+  top: -4px; left: 8px; right: 8px; height: 8px;
+  cursor: n-resize;
+}
+.carlens-resize-s {
+  bottom: -4px; left: 8px; right: 8px; height: 8px;
+  cursor: s-resize;
+}
+.carlens-resize-e {
+  right: -4px; top: 8px; bottom: 8px; width: 8px;
+  cursor: e-resize;
+}
+.carlens-resize-w {
+  left: -4px; top: 8px; bottom: 8px; width: 8px;
+  cursor: w-resize;
+}
+.carlens-resize-ne {
+  top: -4px; right: -4px; width: 12px; height: 12px;
+  cursor: ne-resize;
+}
+.carlens-resize-nw {
+  top: -4px; left: -4px; width: 12px; height: 12px;
+  cursor: nw-resize;
+}
+.carlens-resize-se {
+  bottom: -4px; right: -4px; width: 12px; height: 12px;
+  cursor: se-resize;
+}
+.carlens-resize-sw {
+  bottom: -4px; left: -4px; width: 12px; height: 12px;
+  cursor: sw-resize;
 }
 
 /* ── Header ──────────────────────────────────────────────────────────── */
@@ -23,31 +149,69 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: #1a73e8;
-  border-radius: 12px 12px 0 0;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #1a73e8, #1557b0);
+  border-radius: 16px 16px 0 0;
   color: #fff;
+  user-select: none;
+}
+
+#carlens-overlay.carlens-analyzing #carlens-header {
+  background: linear-gradient(135deg, #1a73e8, #34a853, #1a73e8);
+  background-size: 200% 200%;
+  animation: carlens-header-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes carlens-header-shimmer {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 #carlens-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 700;
-  font-size: 16px;
-  letter-spacing: 0.5px;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+}
+
+.carlens-drag-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0.6;
+}
+
+.carlens-drag-dots span {
+  display: flex;
+  gap: 2px;
+}
+
+.carlens-drag-dots span::before,
+.carlens-drag-dots span::after {
+  content: "";
+  width: 3px;
+  height: 3px;
+  background: #fff;
+  border-radius: 50%;
 }
 
 #carlens-close {
-  background: none;
+  background: rgba(255, 255, 255, 0.15);
   border: none;
   color: #fff;
-  font-size: 22px;
+  font-size: 18px;
   cursor: pointer;
-  padding: 0 4px;
+  padding: 2px 7px;
   line-height: 1;
-  opacity: 0.8;
+  border-radius: 6px;
+  transition: background 0.15s ease;
 }
 
 #carlens-close:hover {
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* ── Body ────────────────────────────────────────────────────────────── */
@@ -61,19 +225,21 @@
 #carlens-analyze-btn {
   display: block;
   width: 100%;
-  padding: 10px 16px;
-  background: #1a73e8;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #1a73e8, #1557b0);
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
 }
 
 #carlens-analyze-btn:hover {
-  background: #1557b0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
 }
 
 /* ── Loading ─────────────────────────────────────────────────────────── */
@@ -81,23 +247,37 @@
 #carlens-loading {
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 20px 0;
+  flex-direction: column;
+  gap: 16px;
+  padding: 30px 0;
   color: #5f6368;
   font-size: 13px;
 }
 
-.carlens-spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid #e8eaed;
-  border-top-color: #1a73e8;
+.carlens-loading-orb {
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  animation: carlens-spin 0.8s linear infinite;
+  background: radial-gradient(circle, rgba(66, 133, 244, 0.8), rgba(66, 133, 244, 0.2));
+  box-shadow: 0 0 20px rgba(66, 133, 244, 0.4), 0 0 40px rgba(66, 133, 244, 0.2);
+  animation: carlens-orb-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes carlens-spin {
-  to { transform: rotate(360deg); }
+@keyframes carlens-orb-pulse {
+  0%   { transform: scale(0.8); opacity: 0.6; box-shadow: 0 0 15px rgba(66, 133, 244, 0.3); }
+  50%  { transform: scale(1.1); opacity: 1;   box-shadow: 0 0 30px rgba(66, 133, 244, 0.5), 0 0 60px rgba(52, 168, 83, 0.2); }
+  100% { transform: scale(0.8); opacity: 0.6; box-shadow: 0 0 15px rgba(66, 133, 244, 0.3); }
+}
+
+.carlens-loading-text {
+  font-size: 13px;
+  color: #5f6368;
+  animation: carlens-text-fade 2s ease-in-out infinite;
+}
+
+@keyframes carlens-text-fade {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
 }
 
 /* ── Error ────────────────────────────────────────────────────────────── */
@@ -105,79 +285,177 @@
 #carlens-error {
   background: #fce8e6;
   color: #c5221f;
-  padding: 10px 12px;
-  border-radius: 6px;
+  padding: 10px 14px;
+  border-radius: 10px;
   font-size: 13px;
   margin-top: 8px;
 }
 
-/* ── Verdict ──────────────────────────────────────────────────────────── */
+/* ── Verdict Card ────────────────────────────────────────────────────── */
 
 #carlens-verdict {
   text-align: center;
-  padding-bottom: 12px;
+  padding: 16px;
   margin-bottom: 12px;
-  border-bottom: 1px solid #e8eaed;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e8eaed;
 }
 
 .carlens-verdict-label {
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   color: #5f6368;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
-.carlens-verdict-text {
-  font-size: 20px;
+.carlens-verdict-badge {
+  display: inline-block;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 16px;
   font-weight: 700;
-  color: #202124;
-  margin-bottom: 10px;
-}
-
-/* Confidence bar */
-.carlens-confidence {
-  margin-top: 6px;
-}
-
-.carlens-confidence-bar {
-  width: 100%;
-  height: 6px;
-  background: #e8eaed;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.carlens-confidence-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.5s ease;
-}
-
-.carlens-confidence-label {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: #5f6368;
-}
-
-/* ── Sections ────────────────────────────────────────────────────────── */
-
-.carlens-section {
+  color: #fff;
   margin-bottom: 12px;
 }
 
-.carlens-section-title {
+/* Verdict badge colors */
+.carlens-verdict-good { background: linear-gradient(135deg, #1e8e3e, #34a853); }
+.carlens-verdict-fair { background: linear-gradient(135deg, #e8710a, #fbbc04); color: #202124; }
+.carlens-verdict-overpriced { background: linear-gradient(135deg, #c5221f, #ea4335); }
+.carlens-verdict-caution { background: linear-gradient(135deg, #e8710a, #d93025); }
+.carlens-verdict-insufficient { background: linear-gradient(135deg, #5f6368, #80868b); }
+
+/* Confidence ring */
+.carlens-confidence-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.carlens-ring-container {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+
+.carlens-ring-svg {
+  transform: rotate(-90deg);
+  width: 48px;
+  height: 48px;
+}
+
+.carlens-ring-bg {
+  fill: none;
+  stroke: #e8eaed;
+  stroke-width: 4;
+}
+
+.carlens-ring-fill {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+.carlens-ring-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 700;
+  color: #202124;
+}
+
+.carlens-confidence-info {
+  text-align: left;
+}
+
+.carlens-confidence-pct {
+  font-size: 13px;
+  font-weight: 600;
+  color: #202124;
+}
+
+.carlens-confidence-disclaimer {
+  font-size: 10px;
+  color: #80868b;
+  line-height: 1.3;
+  margin-top: 2px;
+  max-width: 180px;
+}
+
+/* ── Section Cards ──────────────────────────────────────────────────── */
+
+.carlens-card {
+  margin-bottom: 8px;
+  border-radius: 10px;
+  border: 1px solid #e8eaed;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.carlens-card:hover {
+  border-color: #d2d5d9;
+}
+
+.carlens-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f8f9fa;
+  cursor: pointer;
+  user-select: none;
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #5f6368;
-  margin-bottom: 6px;
+  border: none;
+  width: 100%;
+  text-align: left;
 }
 
-.carlens-positive-title { color: #1e8e3e; }
-.carlens-risk-title { color: #d93025; }
+.carlens-card-header:hover {
+  background: #f1f3f4;
+}
+
+.carlens-card-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.carlens-card-chevron {
+  margin-left: auto;
+  font-size: 10px;
+  transition: transform 0.2s ease;
+  color: #80868b;
+}
+
+.carlens-card.collapsed .carlens-card-chevron {
+  transform: rotate(-90deg);
+}
+
+.carlens-card-body {
+  padding: 8px 14px 12px;
+}
+
+.carlens-card.collapsed .carlens-card-body {
+  display: none;
+}
+
+/* Card type colors */
+.carlens-card-strengths .carlens-card-header { color: #1e8e3e; }
+.carlens-card-risks .carlens-card-header { color: #d93025; }
+.carlens-card-intel .carlens-card-header { color: #1a73e8; }
+.carlens-card-summary .carlens-card-header { color: #5f6368; }
+
+/* ── Lists ───────────────────────────────────────────────────────────── */
 
 .carlens-list {
   list-style: none;
@@ -186,46 +464,134 @@
 }
 
 .carlens-list li {
-  padding: 4px 0 4px 16px;
+  padding: 5px 0 5px 20px;
   position: relative;
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 1.5;
   color: #3c4043;
 }
 
 .carlens-list li::before {
   position: absolute;
   left: 0;
-  top: 5px;
+  top: 6px;
+  font-size: 12px;
 }
 
 .carlens-positive-list li::before {
-  content: "+";
+  content: "\2714";
   color: #1e8e3e;
   font-weight: 700;
 }
 
 .carlens-risk-list li::before {
-  content: "!";
+  content: "\26A0";
   color: #d93025;
+  font-size: 11px;
+}
+
+.carlens-intel-list li::before {
+  content: "\2139";
+  color: #1a73e8;
   font-weight: 700;
 }
 
-.carlens-list:not(.carlens-positive-list):not(.carlens-risk-list) li::before {
-  content: "\2022";
-  color: #5f6368;
-}
+/* ── Summary ─────────────────────────────────────────────────────────── */
 
 .carlens-summary {
   margin: 0;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: #3c4043;
+  padding: 4px 0;
+  border-left: 3px solid #1a73e8;
+  padding-left: 12px;
 }
 
 /* ── Animations ──────────────────────────────────────────────────────── */
 
 @keyframes carlens-fadein {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0);    }
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1);    }
 }
+
+/* ── Scrollbar ───────────────────────────────────────────────────────── */
+
+#carlens-overlay::-webkit-scrollbar {
+  width: 4px;
+}
+
+#carlens-overlay::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#carlens-overlay::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+}
+
+#carlens-overlay::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ── Mode Toggle ─────────────────────────────────────────────────────── */
+
+#carlens-mode-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 12px;
+  background: #f1f3f4;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.carlens-mode-btn {
+  flex: 1;
+  padding: 7px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5f6368;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.carlens-mode-btn:hover {
+  color: #202124;
+}
+
+.carlens-mode-btn.active {
+  background: #fff;
+  color: #1a73e8;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Re-analyze Button ───────────────────────────────────────────────── */
+
+#carlens-reanalyze-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  margin-top: 12px;
+  background: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#carlens-reanalyze-btn:hover {
+  background: #f8f9fa;
+  border-color: #1a73e8;
+}
+
+/* ── Detailed-mode card colors ───────────────────────────────────────── */
+
+.carlens-card-damage .carlens-card-header { color: #d93025; }
+.carlens-card-costs .carlens-card-header { color: #e8710a; }
+.carlens-card-market .carlens-card-header { color: #1a73e8; }
