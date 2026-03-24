@@ -1,6 +1,6 @@
-/* overlay.css — CarLens floating panel (Option A: Card Stack) */
+/* overlay.css — CarLens floating panel */
 
-/* ── Full-Page Aura (Google Lens style) ───────────────────────────────── */
+/* ── Full-Page Aura ─────────────────────────────────────────────────── */
 
 @property --carlens-angle {
   syntax: "<angle>";
@@ -18,154 +18,148 @@
   z-index: 2147483646;
   pointer-events: none;
   overflow: hidden;
+  transition: opacity 0.5s ease;
 }
 
 #carlens-aura.active {
   display: block;
 }
 
-/* Subtle thin gradient border — Google Lens style */
+/* Dim the page behind */
 #carlens-aura::before {
   content: "";
   position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  animation: carlens-dim-in 0.6s ease forwards;
+}
+
+@keyframes carlens-dim-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Scanning gradient line that moves across the screen */
+#carlens-aura::after {
+  content: "";
+  position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(66, 133, 244, 0.06) 40%,
+    rgba(66, 133, 244, 0.12) 50%,
+    rgba(66, 133, 244, 0.06) 60%,
+    transparent 100%
+  );
+  animation: carlens-scan 3s ease-in-out infinite;
+}
+
+@keyframes carlens-scan {
+  0%   { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Animated border around viewport */
+#carlens-aura-border {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  pointer-events: none;
+  display: none;
   border: 3px solid transparent;
   border-image: linear-gradient(
     var(--carlens-angle, 0deg),
-    #4285f4,
-    #34a853,
-    #fbbc04,
-    #ea4335,
-    #4285f4
+    #4285f4, #34a853, #fbbc04, #ea4335, #4285f4
   ) 1;
-  animation: carlens-border-spin 4s linear infinite;
+  animation: carlens-border-spin 3s linear infinite;
+}
+
+#carlens-aura.active + #carlens-overlay ~ #carlens-aura-border,
+#carlens-aura-border.active {
+  display: block;
 }
 
 @keyframes carlens-border-spin {
   to { --carlens-angle: 360deg; }
 }
 
-/* Very soft inward glow — subtle, not distracting */
-#carlens-aura::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  box-shadow:
-    inset 0 0 60px rgba(66, 133, 244, 0.08),
-    inset 0 0 120px rgba(66, 133, 244, 0.04);
-  animation: carlens-aura-pulse 3s ease-in-out infinite;
-}
-
-@keyframes carlens-aura-pulse {
-  0%   { box-shadow: inset 0 0 40px rgba(66, 133, 244, 0.06), inset 0 0 100px rgba(66, 133, 244, 0.03); }
-  50%  { box-shadow: inset 0 0 80px rgba(66, 133, 244, 0.1), inset 0 0 160px rgba(66, 133, 244, 0.05); }
-  100% { box-shadow: inset 0 0 40px rgba(66, 133, 244, 0.06), inset 0 0 100px rgba(66, 133, 244, 0.03); }
-}
-
-/* ── Panel ───────────────────────────────────────────────────────────── */
+/* ── Panel ──────────────────────────────────────────────────────────── */
 
 #carlens-overlay {
   position: fixed;
   top: 16px;
   right: 16px;
   z-index: 2147483647;
-  width: 380px;
-  min-width: 300px;
+  width: 420px;
+  min-width: 320px;
   min-height: 150px;
-  max-height: 90vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 14px;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08);
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.08);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: 14px;
-  color: #202124;
+  font-size: 15px;
+  color: #1a1a1a;
   animation: carlens-fadein 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  /* Height is auto by default — content-driven.
+     Only set explicitly when user manually resizes */
 }
 
-/* Glow effect on panel during loading */
 #carlens-overlay.carlens-analyzing {
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    0 0 40px rgba(66, 133, 244, 0.2),
-    0 0 80px rgba(66, 133, 244, 0.1);
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    0 0 0 2px rgba(66, 133, 244, 0.4),
+    0 0 30px rgba(66, 133, 244, 0.15);
   transition: box-shadow 0.5s ease;
 }
 
-/* ── Resize Handles ──────────────────────────────────────────────────── */
-
-.carlens-resize-handle {
-  position: absolute;
-  z-index: 10;
-}
-.carlens-resize-n {
-  top: -4px; left: 8px; right: 8px; height: 8px;
-  cursor: n-resize;
-}
-.carlens-resize-s {
-  bottom: -4px; left: 8px; right: 8px; height: 8px;
-  cursor: s-resize;
-}
-.carlens-resize-e {
-  right: -4px; top: 8px; bottom: 8px; width: 8px;
-  cursor: e-resize;
-}
-.carlens-resize-w {
-  left: -4px; top: 8px; bottom: 8px; width: 8px;
-  cursor: w-resize;
-}
-.carlens-resize-ne {
-  top: -4px; right: -4px; width: 12px; height: 12px;
-  cursor: ne-resize;
-}
-.carlens-resize-nw {
-  top: -4px; left: -4px; width: 12px; height: 12px;
-  cursor: nw-resize;
-}
-.carlens-resize-se {
-  bottom: -4px; right: -4px; width: 12px; height: 12px;
-  cursor: se-resize;
-}
-.carlens-resize-sw {
-  bottom: -4px; left: -4px; width: 12px; height: 12px;
-  cursor: sw-resize;
+@keyframes carlens-fadein {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Header ──────────────────────────────────────────────────────────── */
+/* ── Resize Handles ─────────────────────────────────────────────────── */
+
+.carlens-resize-handle { position: absolute; z-index: 10; }
+.carlens-resize-n  { top: -4px; left: 8px; right: 8px; height: 8px; cursor: n-resize; }
+.carlens-resize-s  { bottom: -4px; left: 8px; right: 8px; height: 8px; cursor: s-resize; }
+.carlens-resize-e  { right: -4px; top: 8px; bottom: 8px; width: 8px; cursor: e-resize; }
+.carlens-resize-w  { left: -4px; top: 8px; bottom: 8px; width: 8px; cursor: w-resize; }
+.carlens-resize-ne { top: -4px; right: -4px; width: 12px; height: 12px; cursor: ne-resize; }
+.carlens-resize-nw { top: -4px; left: -4px; width: 12px; height: 12px; cursor: nw-resize; }
+.carlens-resize-se { bottom: -4px; right: -4px; width: 12px; height: 12px; cursor: se-resize; }
+.carlens-resize-sw { bottom: -4px; left: -4px; width: 12px; height: 12px; cursor: sw-resize; }
+
+/* ── Header ─────────────────────────────────────────────────────────── */
 
 #carlens-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, #1a73e8, #1557b0);
-  border-radius: 16px 16px 0 0;
+  padding: 10px 14px;
+  background: #1a1a1a;
+  border-radius: 14px 14px 0 0;
   color: #fff;
   user-select: none;
 }
 
 #carlens-overlay.carlens-analyzing #carlens-header {
-  background: linear-gradient(135deg, #1a73e8, #34a853, #1a73e8);
-  background-size: 200% 200%;
-  animation: carlens-header-shimmer 2s ease-in-out infinite;
+  background: linear-gradient(90deg, #1a1a1a, #2a3a4a, #1a1a1a);
+  background-size: 200% 100%;
+  animation: carlens-header-shimmer 2.5s ease-in-out infinite;
 }
 
 @keyframes carlens-header-shimmer {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
 #carlens-logo {
@@ -173,15 +167,19 @@
   align-items: center;
   gap: 8px;
   font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.3px;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.carlens-logo-icon {
+  flex-shrink: 0;
 }
 
 .carlens-drag-dots {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  opacity: 0.6;
+  opacity: 0.4;
 }
 
 .carlens-drag-dots span {
@@ -199,158 +197,392 @@
 }
 
 #carlens-close {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   border: none;
   color: #fff;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   padding: 2px 7px;
   line-height: 1;
-  border-radius: 6px;
-  transition: background 0.15s ease;
+  border-radius: 4px;
+  transition: background 0.15s;
 }
 
 #carlens-close:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.25);
 }
 
-/* ── Body ────────────────────────────────────────────────────────────── */
+/* ── Body ───────────────────────────────────────────────────────────── */
 
 #carlens-body {
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-/* ── Analyze Button ──────────────────────────────────────────────────── */
+/* Results fill available space */
+#carlens-results {
+  flex: 1;
+}
+
+/* ── Mode Toggle ────────────────────────────────────────────────────── */
+
+#carlens-mode-toggle {
+  display: flex;
+  margin-bottom: 10px;
+  background: #f4f4f5;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.carlens-mode-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #888;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.carlens-mode-btn:hover { color: #444; }
+
+.carlens-mode-btn.active {
+  background: #fff;
+  color: #1a1a1a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Analyze Button ─────────────────────────────────────────────────── */
 
 #carlens-analyze-btn {
   display: block;
   width: 100%;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #1a73e8, #1557b0);
+  background: #1a1a1a;
   color: #fff;
   border: none;
-  border-radius: 10px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+  transition: all 0.2s;
+  box-sizing: border-box;
 }
 
 #carlens-analyze-btn:hover {
+  background: #333;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* ── Loading ─────────────────────────────────────────────────────────── */
+/* ── Loading: Progress Steps ────────────────────────────────────────── */
 
 #carlens-loading {
+  flex-direction: column;
+  gap: 0;
+  padding: 16px 0;
+  width: 100%;
+  box-sizing: border-box;
+  flex: 1;
+  justify-content: center;
+}
+
+.carlens-progress-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.carlens-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  font-size: 15px;
+  color: #bbb;
+  transition: all 0.3s ease;
+  border-left: 2px solid #e5e5e5;
+  margin-left: 10px;
+  padding-left: 16px;
+}
+
+.carlens-step:first-child { border-top-left-radius: 2px; }
+.carlens-step:last-child { border-bottom-left-radius: 2px; }
+
+.carlens-step-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  gap: 16px;
-  padding: 30px 0;
-  color: #5f6368;
-  font-size: 13px;
+  flex-shrink: 0;
 }
 
-.carlens-loading-orb {
-  width: 48px;
-  height: 48px;
+/* Spinner circle */
+.carlens-step-spinner {
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(66, 133, 244, 0.8), rgba(66, 133, 244, 0.2));
-  box-shadow: 0 0 20px rgba(66, 133, 244, 0.4), 0 0 40px rgba(66, 133, 244, 0.2);
-  animation: carlens-orb-pulse 1.5s ease-in-out infinite;
+  border: 2px solid #e5e5e5;
+  transition: all 0.3s;
 }
 
-@keyframes carlens-orb-pulse {
-  0%   { transform: scale(0.8); opacity: 0.6; box-shadow: 0 0 15px rgba(66, 133, 244, 0.3); }
-  50%  { transform: scale(1.1); opacity: 1;   box-shadow: 0 0 30px rgba(66, 133, 244, 0.5), 0 0 60px rgba(52, 168, 83, 0.2); }
-  100% { transform: scale(0.8); opacity: 0.6; box-shadow: 0 0 15px rgba(66, 133, 244, 0.3); }
+/* Active step */
+.carlens-step-active {
+  color: #1a1a1a;
+  font-weight: 600;
+  border-left-color: #4285f4;
 }
 
-.carlens-loading-text {
-  font-size: 13px;
-  color: #5f6368;
-  animation: carlens-text-fade 2s ease-in-out infinite;
+.carlens-step-active .carlens-step-spinner {
+  border-color: #4285f4 transparent #4285f4 transparent;
+  animation: carlens-spin 0.8s linear infinite;
 }
 
-@keyframes carlens-text-fade {
-  0%, 100% { opacity: 0.5; }
-  50%      { opacity: 1; }
+@keyframes carlens-spin {
+  to { transform: rotate(360deg); }
 }
 
-/* ── Error ────────────────────────────────────────────────────────────── */
+/* Done step */
+.carlens-step-done {
+  color: #666;
+  border-left-color: #34a853;
+}
+
+.carlens-step-done .carlens-step-spinner {
+  border: none;
+  background: #34a853;
+  position: relative;
+}
+
+.carlens-step-done .carlens-step-spinner::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Pending step */
+.carlens-step-pending {
+  color: #ccc;
+}
+
+/* ── Car Animation ──────────────────────────────────────────────────── */
+
+.carlens-car-animation {
+  position: relative;
+  height: 80px;
+  margin: 16px 0 8px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #d4e8f7 0%, #e8f0f8 40%, #c8d8c0 40%, #a8c89a 55%, #8ab87a 55%, #8ab87a 100%);
+  border-radius: 8px;
+}
+
+/* Pixel-style city skyline silhouette */
+.carlens-car-animation::before {
+  content: "";
+  position: absolute;
+  bottom: 22px;
+  left: 0;
+  right: 0;
+  height: 36px;
+  z-index: 1;
+  background:
+    /* Mountains in back */
+    linear-gradient(135deg, transparent 40%, #9ab89a 40%, #9ab89a 42%, transparent 42%) -20px 18px / 80px 30px repeat-x,
+    linear-gradient(45deg, transparent 40%, #9ab89a 40%, #9ab89a 42%, transparent 42%) 20px 18px / 80px 30px repeat-x,
+    /* Buildings */
+    linear-gradient(to bottom, #7a8a9a, #7a8a9a) 8px 14px / 12px 22px no-repeat,
+    linear-gradient(to bottom, #8a9aaa, #8a9aaa) 24px 18px / 8px 18px no-repeat,
+    linear-gradient(to bottom, #6a7a8a, #6a7a8a) 36px 10px / 14px 26px no-repeat,
+    linear-gradient(to bottom, #8a9aaa, #8a9aaa) 54px 20px / 10px 16px no-repeat,
+    linear-gradient(to bottom, #7a8a9a, #7a8a9a) 68px 16px / 12px 20px no-repeat,
+    /* More buildings right side */
+    linear-gradient(to bottom, #6a7a8a, #6a7a8a) calc(100% - 80px) 12px / 16px 24px no-repeat,
+    linear-gradient(to bottom, #8a9aaa, #8a9aaa) calc(100% - 60px) 18px / 10px 18px no-repeat,
+    linear-gradient(to bottom, #7a8a9a, #7a8a9a) calc(100% - 44px) 8px / 12px 28px no-repeat,
+    linear-gradient(to bottom, #8a9aaa, #8a9aaa) calc(100% - 28px) 20px / 14px 16px no-repeat,
+    linear-gradient(to bottom, #6a7a8a, #6a7a8a) calc(100% - 10px) 14px / 10px 22px no-repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+/* Road surface */
+.carlens-road {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: #555;
+  z-index: 1;
+}
+
+/* Dashed center line */
+.carlens-road::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    #ddd 0px, #ddd 14px,
+    transparent 14px, transparent 24px
+  );
+  animation: carlens-road-move 0.8s linear infinite;
+}
+
+@keyframes carlens-road-move {
+  from { background-position: 0 0; }
+  to { background-position: -20px 0; }
+}
+
+/* Pixel art car sprite — faces right (left to right travel) */
+.carlens-car-sprite {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  height: 36px;
+  width: auto;
+  transform: translateX(-50%);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: carlens-car-bounce 0.6s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes carlens-car-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-2px); }
+}
+
+/* Scrolling props (scenery moves right-to-left, car goes left-to-right) */
+.carlens-prop {
+  position: absolute;
+  bottom: 18px;
+  height: 28px;
+  width: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: carlens-prop-scroll 5s linear infinite;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+.carlens-prop-1 { right: -40px; animation-delay: 0s; }
+.carlens-prop-2 { right: -40px; animation-delay: 2.8s; }
+
+@keyframes carlens-prop-scroll {
+  0%   { transform: translateX(40px); opacity: 0; }
+  5%   { opacity: 0.6; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateX(-500px); opacity: 0; }
+}
+
+/* ── Fun Fact ───────────────────────────────────────────────────────── */
+
+.carlens-fun-fact {
+  padding: 12px 14px;
+  margin-top: 12px;
+  background: #f8f8f8;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #666;
+}
+
+.carlens-fact-label {
+  display: block;
+  font-weight: 700;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999;
+  margin-bottom: 3px;
+}
+
+.carlens-fact-text {
+  transition: opacity 0.3s ease;
+}
+
+/* ── Error ──────────────────────────────────────────────────────────── */
 
 #carlens-error {
-  background: #fce8e6;
-  color: #c5221f;
-  padding: 10px 14px;
-  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 10px 12px;
+  border-radius: 8px;
   font-size: 13px;
   margin-top: 8px;
+  border: 1px solid #fecaca;
 }
 
-/* ── Verdict Card ────────────────────────────────────────────────────── */
+/* ── Verdict ────────────────────────────────────────────────────────── */
 
 #carlens-verdict {
   text-align: center;
-  padding: 16px;
-  margin-bottom: 12px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  border: 1px solid #e8eaed;
-}
-
-.carlens-verdict-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: #5f6368;
-  margin-bottom: 6px;
+  padding: 14px;
+  margin-bottom: 10px;
+  background: #fafafa;
+  border-radius: 10px;
+  border: 1px solid #eee;
 }
 
 .carlens-verdict-badge {
   display: inline-block;
   padding: 6px 20px;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 16px;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
-/* Verdict badge colors */
-.carlens-verdict-good { background: linear-gradient(135deg, #1e8e3e, #34a853); }
-.carlens-verdict-fair { background: linear-gradient(135deg, #e8710a, #fbbc04); color: #202124; }
-.carlens-verdict-overpriced { background: linear-gradient(135deg, #c5221f, #ea4335); }
-.carlens-verdict-caution { background: linear-gradient(135deg, #e8710a, #d93025); }
-.carlens-verdict-insufficient { background: linear-gradient(135deg, #5f6368, #80868b); }
+.carlens-verdict-good { background: #16a34a; }
+.carlens-verdict-fair { background: #d97706; color: #fff; }
+.carlens-verdict-overpriced { background: #dc2626; }
+.carlens-verdict-caution { background: #ea580c; }
+.carlens-verdict-insufficient { background: #6b7280; }
 
 /* Confidence ring */
 .carlens-confidence-ring {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-top: 4px;
+  gap: 10px;
 }
 
 .carlens-ring-container {
   position: relative;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
 }
 
 .carlens-ring-svg {
   transform: rotate(-90deg);
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
 }
 
 .carlens-ring-bg {
   fill: none;
-  stroke: #e8eaed;
+  stroke: #eee;
   stroke-width: 4;
 }
 
@@ -366,75 +598,125 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  color: #202124;
+  color: #1a1a1a;
 }
 
-.carlens-confidence-info {
-  text-align: left;
-}
+.carlens-confidence-info { text-align: left; }
 
 .carlens-confidence-pct {
   font-size: 13px;
   font-weight: 600;
-  color: #202124;
+  color: #1a1a1a;
 }
 
 .carlens-confidence-disclaimer {
   font-size: 10px;
-  color: #80868b;
+  color: #999;
   line-height: 1.3;
-  margin-top: 2px;
-  max-width: 180px;
+  margin-top: 1px;
+  max-width: 170px;
 }
+
+/* ── TL;DR Summary ──────────────────────────────────────────────────── */
+
+.carlens-tldr {
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: #f0f7ff;
+  border-radius: 8px;
+  border-left: 3px solid #4285f4;
+}
+
+.carlens-tldr p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* ── Stats Row ──────────────────────────────────────────────────────── */
+
+.carlens-stats-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.carlens-stat {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.carlens-stat-num {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.carlens-stat-label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.carlens-stat-good .carlens-stat-num { color: #16a34a; }
+.carlens-stat-bad .carlens-stat-num { color: #dc2626; }
+.carlens-stat-info .carlens-stat-num { color: #2563eb; }
 
 /* ── Section Cards ──────────────────────────────────────────────────── */
 
 .carlens-card {
-  margin-bottom: 8px;
-  border-radius: 10px;
-  border: 1px solid #e8eaed;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  border: 1px solid #eee;
   overflow: hidden;
-  transition: all 0.2s ease;
-}
-
-.carlens-card:hover {
-  border-color: #d2d5d9;
 }
 
 .carlens-card-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background: #f8f9fa;
+  gap: 10px;
+  padding: 11px 14px;
+  background: #fafafa;
   cursor: pointer;
   user-select: none;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #5f6368;
+  letter-spacing: 0.4px;
+  color: #666;
   border: none;
   width: 100%;
   text-align: left;
+  transition: background 0.15s;
+  box-sizing: border-box;
 }
 
-.carlens-card-header:hover {
-  background: #f1f3f4;
-}
+.carlens-card-header:hover { background: #f0f0f0; }
 
-.carlens-card-icon {
-  font-size: 14px;
+/* Pixel art card sprites */
+.carlens-card-sprite {
+  width: 24px;
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
   flex-shrink: 0;
 }
 
 .carlens-card-chevron {
   margin-left: auto;
-  font-size: 10px;
-  transition: transform 0.2s ease;
-  color: #80868b;
+  font-size: 9px;
+  transition: transform 0.2s;
+  color: #bbb;
 }
 
 .carlens-card.collapsed .carlens-card-chevron {
@@ -449,13 +731,15 @@
   display: none;
 }
 
-/* Card type colors */
-.carlens-card-strengths .carlens-card-header { color: #1e8e3e; }
-.carlens-card-risks .carlens-card-header { color: #d93025; }
-.carlens-card-intel .carlens-card-header { color: #1a73e8; }
-.carlens-card-summary .carlens-card-header { color: #5f6368; }
+/* Card header colors */
+.carlens-card-strengths .carlens-card-header { color: #16a34a; }
+.carlens-card-risks .carlens-card-header { color: #dc2626; }
+.carlens-card-intel .carlens-card-header { color: #2563eb; }
+.carlens-card-damage .carlens-card-header { color: #ea580c; }
+.carlens-card-costs .carlens-card-header { color: #d97706; }
+.carlens-card-market .carlens-card-header { color: #7c3aed; }
 
-/* ── Lists ───────────────────────────────────────────────────────────── */
+/* ── Lists ──────────────────────────────────────────────────────────── */
 
 .carlens-list {
   list-style: none;
@@ -464,147 +748,94 @@
 }
 
 .carlens-list li {
-  padding: 5px 0 5px 20px;
+  padding: 5px 0 5px 18px;
   position: relative;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #3c4043;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #444;
 }
 
 .carlens-list li::before {
   position: absolute;
   left: 0;
   top: 6px;
-  font-size: 12px;
+  font-size: 8px;
 }
 
 .carlens-positive-list li::before {
-  content: "\2714";
-  color: #1e8e3e;
-  font-weight: 700;
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #16a34a;
+  border-radius: 50%;
 }
 
 .carlens-risk-list li::before {
-  content: "\26A0";
-  color: #d93025;
-  font-size: 11px;
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #dc2626;
+  border-radius: 2px;
+  transform: rotate(45deg);
 }
 
 .carlens-intel-list li::before {
-  content: "\2139";
-  color: #1a73e8;
-  font-weight: 700;
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #2563eb;
+  border-radius: 50%;
 }
 
-/* ── Summary ─────────────────────────────────────────────────────────── */
+/* ── Summary text ───────────────────────────────────────────────────── */
 
 .carlens-summary {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
-  color: #3c4043;
+  color: #444;
   padding: 4px 0;
-  border-left: 3px solid #1a73e8;
-  padding-left: 12px;
 }
 
-/* ── Animations ──────────────────────────────────────────────────────── */
+/* ── Scrollbar ──────────────────────────────────────────────────────── */
 
-@keyframes carlens-fadein {
-  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
-  to   { opacity: 1; transform: translateY(0) scale(1);    }
-}
+#carlens-body::-webkit-scrollbar { width: 4px; }
+#carlens-body::-webkit-scrollbar-track { background: transparent; }
+#carlens-body::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); border-radius: 2px; }
+#carlens-body::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); }
 
-/* ── Scrollbar ───────────────────────────────────────────────────────── */
-
-#carlens-overlay::-webkit-scrollbar {
-  width: 4px;
-}
-
-#carlens-overlay::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-#carlens-overlay::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 2px;
-}
-
-#carlens-overlay::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-/* ── Mode Toggle ─────────────────────────────────────────────────────── */
-
-#carlens-mode-toggle {
-  display: flex;
-  gap: 0;
-  margin-bottom: 12px;
-  background: #f1f3f4;
-  border-radius: 8px;
-  padding: 3px;
-}
-
-.carlens-mode-btn {
-  flex: 1;
-  padding: 7px 12px;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #5f6368;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.carlens-mode-btn:hover {
-  color: #202124;
-}
-
-.carlens-mode-btn.active {
-  background: #fff;
-  color: #1a73e8;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* ── Report Notice Banner ────────────────────────────────────────────── */
+/* ── Report Notice ──────────────────────────────────────────────────── */
 
 .carlens-report-notice {
-  background: #fef7e0;
-  color: #856404;
-  padding: 8px 12px;
-  border-radius: 8px;
+  background: #fffbeb;
+  color: #92400e;
+  padding: 8px 10px;
+  border-radius: 6px;
   font-size: 11px;
   line-height: 1.4;
-  margin-top: 8px;
-  border: 1px solid #f0e4b8;
+  margin-top: 6px;
+  border: 1px solid #fde68a;
 }
 
-/* ── Re-analyze Button ───────────────────────────────────────────────── */
+/* ── Re-analyze Button ──────────────────────────────────────────────── */
 
 #carlens-reanalyze-btn {
   display: block;
   width: 100%;
   padding: 8px 16px;
-  margin-top: 12px;
+  margin-top: 10px;
   background: transparent;
-  color: #1a73e8;
-  border: 1px solid #dadce0;
-  border-radius: 8px;
-  font-size: 13px;
+  color: #666;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.15s;
 }
 
 #carlens-reanalyze-btn:hover {
-  background: #f8f9fa;
-  border-color: #1a73e8;
+  background: #f5f5f5;
+  color: #1a1a1a;
+  border-color: #ccc;
 }
-
-/* ── Detailed-mode card colors ───────────────────────────────────────── */
-
-.carlens-card-damage .carlens-card-header { color: #d93025; }
-.carlens-card-costs .carlens-card-header { color: #e8710a; }
-.carlens-card-market .carlens-card-header { color: #1a73e8; }
