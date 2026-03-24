@@ -3,9 +3,13 @@
   "name": "CarLens",
   "version": "0.1.0",
   "description": "Evaluates used car listings with AI-powered insights.",
-  "permissions": [],
+  "permissions": [
+    "tabs",
+    "scripting"
+  ],
   "host_permissions": [
-    "http://localhost:5000/*"
+    "http://localhost:5000/*",
+    "*://*.carfax.com/*"
   ],
   "content_scripts": [
     {
@@ -22,5 +26,11 @@
   },
   "action": {
     "default_title": "CarLens"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/cars/*", "assets/props/*"],
+      "matches": ["*://*.carfax.com/*"]
+    }
+  ]
 }
