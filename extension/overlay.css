@@ -568,6 +568,19 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* ── Report Notice Banner ────────────────────────────────────────────── */
+
+.carlens-report-notice {
+  background: #fef7e0;
+  color: #856404;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  margin-top: 8px;
+  border: 1px solid #f0e4b8;
+}
+
 /* ── Re-analyze Button ───────────────────────────────────────────────── */
 
 #carlens-reanalyze-btn {

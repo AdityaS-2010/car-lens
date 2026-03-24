@@ -1,4 +1,5 @@
 import json
+import re
 import os
 from pathlib import Path
 
@@ -38,12 +39,36 @@ def get_verdict(listing: CarListing, mode: str = "brief") -> dict:
 def _parse_response(text: str, mode: str = "brief") -> dict:
     """Extract the JSON object from the model's response text."""
     cleaned = text.strip()
-    if cleaned.startswith("```"):
-        lines = cleaned.split("\n")
-        lines = [l for l in lines[1:] if not l.strip().startswith("```")]
-        cleaned = "\n".join(lines)
 
-    result = json.loads(cleaned)
+    # Strip markdown code fences
+    cleaned = re.sub(r"^```(?:json)?\s*\n?", "", cleaned)
+    cleaned = re.sub(r"\n?```\s*$", "", cleaned)
+    cleaned = cleaned.strip()
+
+    # Find the JSON object boundaries if there's extra text around it
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        cleaned = cleaned[start:end + 1]
+
+    # Try parsing directly first
+    try:
+        result = json.loads(cleaned)
+    except json.JSONDecodeError:
+        # Gemini sometimes puts unescaped newlines or quotes inside strings.
+        # Try to fix common issues: replace literal newlines inside strings,
+        # remove trailing commas before } or ]
+        fixed = re.sub(r",\s*([}\]])", r"\1", cleaned)  # trailing commas
+        try:
+            result = json.loads(fixed)
+        except json.JSONDecodeError:
+            # Last resort: ask for just the fields we need
+            print(f"[CarLens] Failed to parse Gemini response, raw text:\n{text[:500]}")
+            result = {
+                "verdict": "Error",
+                "confidence": 0,
+                "summary": "The AI returned a malformed response. Please try again.",
+            }
 
     parsed = {
         "verdict": str(result.get("verdict", "Unknown")),
