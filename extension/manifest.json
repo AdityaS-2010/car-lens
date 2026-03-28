@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CarLens",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Evaluates used car listings with AI-powered insights.",
   "permissions": [
     "tabs",
@@ -16,7 +16,12 @@
       "matches": [
         "*://*.carfax.com/*"
       ],
-      "js": ["content.js"],
+      "js": [
+        "content/extract.js",
+        "content/game.js",
+        "content/ui.js",
+        "content/main.js"
+      ],
       "css": ["overlay.css"],
       "run_at": "document_idle"
     }

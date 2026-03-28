@@ -30,13 +30,16 @@ Service History:
 Full CARFAX Report Data:
 {damage_report}
 
+Comparable Listings:
+{comparable_prices}
+
 Instructions:
 1. Evaluate this SPECIFIC {year} {make} {model} — not a generic car.
 2. If CARFAX report data is available above, analyze it carefully — but ONLY report what the data actually says. If it says "No Issues Reported" for structural damage, that is a POSITIVE, not a risk.
 3. For any reported damage: distinguish between minor cosmetic damage and structural damage. Only flag structural/safety concerns if explicitly stated.
 4. Analyze ownership patterns from the data provided.
 5. Count and evaluate the actual service records provided — do not claim missing records if they are present.
-6. Consider the CARFAX Value Delta — if it says "Great Value" or "$X below market," factor that into your verdict.
+6. Consider the CARFAX Value Delta — if it says "Great Value" or "$X below market," factor that into your verdict. If comparable_prices is provided, use the actual price data for your market comparison instead of guessing.
 7. Provide car-specific insights for this make/model/generation at this mileage.
 8. Be direct and actionable. Give specific dollar estimates where possible.
 

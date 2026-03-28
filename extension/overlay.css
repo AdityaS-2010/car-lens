@@ -381,118 +381,35 @@
   color: #ccc;
 }
 
-/* ── Car Animation ──────────────────────────────────────────────────── */
+/* ── Mini-Game ─────────────────────────────────────────────────────── */
 
-.carlens-car-animation {
+.carlens-game-container {
   position: relative;
-  height: 80px;
-  margin: 16px 0 8px;
-  overflow: hidden;
-  background: linear-gradient(180deg, #d4e8f7 0%, #e8f0f8 40%, #c8d8c0 40%, #a8c89a 55%, #8ab87a 55%, #8ab87a 100%);
+  margin: 12px 0 4px;
   border-radius: 8px;
+  overflow: hidden;
+  background: #f8f9fa;
+  border: 1px solid #eee;
 }
 
-/* Pixel-style city skyline silhouette */
-.carlens-car-animation::before {
-  content: "";
+#carlens-game {
+  display: block;
+  width: 100%;
+  height: 120px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  cursor: pointer;
+}
+
+.carlens-game-hint {
   position: absolute;
-  bottom: 22px;
+  bottom: 4px;
   left: 0;
   right: 0;
-  height: 36px;
-  z-index: 1;
-  background:
-    /* Mountains in back */
-    linear-gradient(135deg, transparent 40%, #9ab89a 40%, #9ab89a 42%, transparent 42%) -20px 18px / 80px 30px repeat-x,
-    linear-gradient(45deg, transparent 40%, #9ab89a 40%, #9ab89a 42%, transparent 42%) 20px 18px / 80px 30px repeat-x,
-    /* Buildings */
-    linear-gradient(to bottom, #7a8a9a, #7a8a9a) 8px 14px / 12px 22px no-repeat,
-    linear-gradient(to bottom, #8a9aaa, #8a9aaa) 24px 18px / 8px 18px no-repeat,
-    linear-gradient(to bottom, #6a7a8a, #6a7a8a) 36px 10px / 14px 26px no-repeat,
-    linear-gradient(to bottom, #8a9aaa, #8a9aaa) 54px 20px / 10px 16px no-repeat,
-    linear-gradient(to bottom, #7a8a9a, #7a8a9a) 68px 16px / 12px 20px no-repeat,
-    /* More buildings right side */
-    linear-gradient(to bottom, #6a7a8a, #6a7a8a) calc(100% - 80px) 12px / 16px 24px no-repeat,
-    linear-gradient(to bottom, #8a9aaa, #8a9aaa) calc(100% - 60px) 18px / 10px 18px no-repeat,
-    linear-gradient(to bottom, #7a8a9a, #7a8a9a) calc(100% - 44px) 8px / 12px 28px no-repeat,
-    linear-gradient(to bottom, #8a9aaa, #8a9aaa) calc(100% - 28px) 20px / 14px 16px no-repeat,
-    linear-gradient(to bottom, #6a7a8a, #6a7a8a) calc(100% - 10px) 14px / 10px 22px no-repeat;
-  image-rendering: pixelated;
+  text-align: center;
+  font-size: 10px;
+  color: #aaa;
   pointer-events: none;
-}
-
-/* Road surface */
-.carlens-road {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 20px;
-  background: #555;
-  z-index: 1;
-}
-
-/* Dashed center line */
-.carlens-road::after {
-  content: "";
-  position: absolute;
-  top: 9px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: repeating-linear-gradient(
-    90deg,
-    #ddd 0px, #ddd 14px,
-    transparent 14px, transparent 24px
-  );
-  animation: carlens-road-move 0.8s linear infinite;
-}
-
-@keyframes carlens-road-move {
-  from { background-position: 0 0; }
-  to { background-position: -20px 0; }
-}
-
-/* Pixel art car sprite — faces right (left to right travel) */
-.carlens-car-sprite {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  height: 36px;
-  width: auto;
-  transform: translateX(-50%);
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  animation: carlens-car-bounce 0.6s ease-in-out infinite;
-  z-index: 2;
-}
-
-@keyframes carlens-car-bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-2px); }
-}
-
-/* Scrolling props (scenery moves right-to-left, car goes left-to-right) */
-.carlens-prop {
-  position: absolute;
-  bottom: 18px;
-  height: 28px;
-  width: auto;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  animation: carlens-prop-scroll 5s linear infinite;
-  opacity: 0.6;
-  z-index: 1;
-}
-
-.carlens-prop-1 { right: -40px; animation-delay: 0s; }
-.carlens-prop-2 { right: -40px; animation-delay: 2.8s; }
-
-@keyframes carlens-prop-scroll {
-  0%   { transform: translateX(40px); opacity: 0; }
-  5%   { opacity: 0.6; }
-  90%  { opacity: 0.6; }
-  100% { transform: translateX(-500px); opacity: 0; }
 }
 
 /* ── Fun Fact ───────────────────────────────────────────────────────── */
@@ -737,6 +654,20 @@
 .carlens-card-intel .carlens-card-header { color: #2563eb; }
 .carlens-card-damage .carlens-card-header { color: #ea580c; }
 .carlens-card-costs .carlens-card-header { color: #d97706; }
+.carlens-card-comps .carlens-card-icon { background: #7c3aed; }
+.carlens-card-comps .carlens-card-header { color: #7c3aed; }
+
+.carlens-comp-link {
+  color: #4285f4;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.carlens-comp-link:hover {
+  text-decoration: underline;
+}
 .carlens-card-market .carlens-card-header { color: #7c3aed; }
 
 /* ── Lists ──────────────────────────────────────────────────────────── */

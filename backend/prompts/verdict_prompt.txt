@@ -21,13 +21,20 @@ Vehicle Details:
 Service History:
 {service_history}
 
+CARFAX Report Data:
+{damage_report}
+
+Comparable Listings:
+{comparable_prices}
+
 Instructions:
 1. Evaluate this SPECIFIC {year} {make} {model} — not a generic car.
-2. Consider how the price compares to typical market value for this exact make/model/year/mileage combination.
+2. If comparable_prices is provided, use the actual numbers for your market comparison. If not provided, use general knowledge about this make/model/year.
 3. Weigh positives (maintenance history, single owner, no accidents, good value) against risks (high mileage, accidents, commercial use, missing service records).
 4. Provide car-specific insights — things a buyer should know about this particular make/model (common issues, maintenance costs, reliability patterns).
 5. Be direct and actionable. Avoid generic advice like "get a pre-purchase inspection" unless there's a specific reason.
 6. NEVER claim damage, accidents, or issues that are not explicitly stated in the data above.
+7. If CARFAX Report Data says "No damage report available", do not invent damage details. Only analyze what is provided.
 
 Respond with ONLY a JSON object in this exact format (no extra text):
 

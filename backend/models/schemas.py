@@ -22,6 +22,7 @@ class CarListing:
     value_delta: Optional[str] = None
     source_url: Optional[str] = None
     damage_report: Optional[str] = None
+    comparable_prices: Optional[dict] = None
 
     def to_prompt_dict(self) -> dict:
         """Return a dict formatted for the AI prompt template."""
@@ -40,8 +41,19 @@ class CarListing:
             "location": self.location or "Unknown",
             "value_delta": self.value_delta or "N/A",
             "damage_report": self.damage_report or "No damage report available",
+            "comparable_prices": self._format_comparable_prices(),
             "today": date.today().strftime("%B %d, %Y"),
         }
+
+    def _format_comparable_prices(self) -> str:
+        if not self.comparable_prices or self.comparable_prices.get("count", 0) < 2:
+            return "No comparable listings data available"
+        c = self.comparable_prices
+        tier_note = f" (Tier {c['tier']} - {c.get('tier_label', 'search')})" if c.get("tier", 1) > 1 else ""
+        return (
+            f"{c['count']} comparable listings{tier_note}: "
+            f"avg ${c['avg']:,}, range ${c['min']:,}\u2013${c['max']:,}"
+        )
 
 
 @dataclass

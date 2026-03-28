@@ -24,6 +24,7 @@ def parse_listing(raw_data: dict) -> CarListing:
         value_delta=_str_or_none(raw_data.get("value_delta")),
         source_url=_str_or_none(raw_data.get("source_url")),
         damage_report=_str_or_none(raw_data.get("damage_report")),
+        comparable_prices=raw_data.get("comparable_prices"),
     )
 
 
