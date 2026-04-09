@@ -3,8 +3,7 @@
 // Player moves between 3 lanes with W/S or Up/Down arrows.
 // Oncoming cars scroll from right to left. Dodge to survive.
 
-"use strict";
-
+/* eslint-disable no-unused-vars */
 var CarLensGame = (function () {
   let canvas, ctx;
   let running = false;
@@ -93,12 +92,18 @@ var CarLensGame = (function () {
 
   function bindInput() {
     document._carlensGameHandler = function (e) {
-      if (!running || gameOver) return;
+      if (!running) return;
       // Only capture keys when the loading screen is actively visible
       const loading = document.getElementById("carlens-loading");
       if (!loading || loading.style.display === "none") return;
 
       const key = e.key || e.code;
+
+      // Retry on SPACE when game over
+      if (gameOver) {
+        if (key === " " || key === "Space") { reset(); e.preventDefault(); }
+        return;
+      }
 
       if (key === "ArrowUp" || key === "w" || key === "W") {
         if (player.lane > 0) {
@@ -304,7 +309,7 @@ var CarLensGame = (function () {
       animFrame = null;
     }
     if (document._carlensGameHandler) {
-      document.removeEventListener("keydown", document._carlensGameHandler, true);
+      document.removeEventListener("keydown", document._carlensGameHandler);
       document._carlensGameHandler = null;
     }
   }

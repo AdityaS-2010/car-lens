@@ -558,12 +558,12 @@ async function fetchReportData(reportUrl) {
 
 // ── Fetch Comparable Prices via Background Tab ──────────────────────
 
-async function fetchComparablePrices(make, model, year, location) {
-  console.log("[CarLens] Requesting comparable prices:", { make, model, year, location });
+async function fetchComparablePrices(make, model, year, location, price, mileage) {
+  console.log("[CarLens] Requesting comparable prices:", { make, model, year, location, price, mileage });
 
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(
-      { type: "FETCH_COMPARABLE_PRICES", make, model, year, location },
+      { type: "FETCH_COMPARABLE_PRICES", make, model, year, location, price, mileage },
       (response) => {
         if (chrome.runtime.lastError) {
           console.warn("[CarLens] Comps message error:", chrome.runtime.lastError.message);

@@ -280,8 +280,11 @@ function renderResults(data) {
       `<ul class="carlens-list carlens-risk-list">${data.risks.map((r) => `<li>${r}</li>`).join("")}</ul>`, false, data.risks.length);
   }
 
-  // Comparable prices card — open by default
-  if (data._comps && data._comps.count >= 2) {
+  // Comparable prices card
+  if (data._comps && data._comps.count === 0) {
+    cardsHTML += makeCard("comps", "Similar Listings",
+      `<p class="carlens-summary">No similar listings found on CARFAX for this make/model in your area.</p>`, true);
+  } else if (data._comps && data._comps.count >= 2) {
     const c = data._comps;
     const tierLabel = c.tier > 1 ? ` <span style="color:#999;font-weight:400;">(${c.tier_label})</span>` : "";
     let compsBody = `<p class="carlens-summary">
@@ -292,12 +295,12 @@ function renderResults(data) {
     if (c.listings && c.listings.length > 0) {
       compsBody += `<ul class="carlens-list carlens-intel-list">`;
       for (const l of c.listings.slice(0, 8)) {
-        const yr = l.year || "";
-        const mi = l.mileage ? ` / ${l.mileage.toLocaleString()} mi` : "";
+        const name = l.title || (l.year ? `${l.year}` : "Listing");
+        const mi = l.mileage ? ` — ${l.mileage.toLocaleString()} mi` : "";
         const link = l.url
           ? ` <a href="${l.url}" target="_blank" rel="noopener" class="carlens-comp-link">View</a>`
           : "";
-        compsBody += `<li><strong>$${l.price.toLocaleString()}</strong> — ${yr}${mi}${link}</li>`;
+        compsBody += `<li><strong>$${l.price.toLocaleString()}</strong> ${name}${mi}${link}</li>`;
       }
       compsBody += `</ul>`;
     }

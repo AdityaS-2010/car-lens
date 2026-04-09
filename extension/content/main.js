@@ -137,7 +137,8 @@
         setStep("comps", "active");
         try {
           compsData = await fetchComparablePrices(
-            carData.make, carData.model, carData.year, carData.location
+            carData.make, carData.model, carData.year, carData.location,
+            carData.price, carData.mileage
           );
           if (compsData && compsData.count >= 2) {
             carData.comparable_prices = compsData;

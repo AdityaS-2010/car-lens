@@ -97,6 +97,7 @@
   width: 420px;
   min-width: 320px;
   min-height: 150px;
+  max-height: calc(100vh - 32px);
   overflow: hidden;
   background: #fff;
   border-radius: 14px;
@@ -109,8 +110,6 @@
   animation: carlens-fadein 0.3s ease;
   display: flex;
   flex-direction: column;
-  /* Height is auto by default — content-driven.
-     Only set explicitly when user manually resizes */
 }
 
 #carlens-overlay.carlens-analyzing {

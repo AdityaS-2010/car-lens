@@ -49,11 +49,26 @@ class CarListing:
         if not self.comparable_prices or self.comparable_prices.get("count", 0) < 2:
             return "No comparable listings data available"
         c = self.comparable_prices
-        tier_note = f" (Tier {c['tier']} - {c.get('tier_label', 'search')})" if c.get("tier", 1) > 1 else ""
-        return (
-            f"{c['count']} comparable listings{tier_note}: "
+        lines = [
+            f"{c['count']} similar listings found nearby — "
             f"avg ${c['avg']:,}, range ${c['min']:,}\u2013${c['max']:,}"
-        )
+        ]
+        # Include individual listings so AI can compare
+        for i, listing in enumerate(c.get("listings", [])[:10], 1):
+            parts = []
+            if listing.get("title"):
+                parts.append(listing["title"])
+            elif listing.get("year"):
+                parts.append(str(listing["year"]))
+            if listing.get("price"):
+                parts.append(f"${listing['price']:,}")
+            if listing.get("mileage"):
+                parts.append(f"{listing['mileage']:,} mi")
+            if listing.get("url"):
+                parts.append(listing["url"])
+            if parts:
+                lines.append(f"  {i}. {' — '.join(parts)}")
+        return "\n".join(lines)
 
 
 @dataclass
