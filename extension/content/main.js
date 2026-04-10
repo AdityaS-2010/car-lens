@@ -9,7 +9,31 @@
 (function () {
   if (document.getElementById("carlens-overlay")) return;
 
-  const BACKEND_URL = "http://localhost:5000/analyze";
+  const LOCAL_BACKEND = "http://localhost:5000";
+  const DEPLOYED_BACKEND = "https://car-lens.onrender.com";
+
+  // Resolved once per page load. Prefers localhost (for dev), falls back to deployed.
+  let _backendBasePromise = null;
+  function resolveBackendBase() {
+    if (_backendBasePromise) return _backendBasePromise;
+    _backendBasePromise = (async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 1500);
+        const res = await fetch(`${LOCAL_BACKEND}/health`, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (res.ok) {
+          console.log("[CarLens] Using local backend");
+          return LOCAL_BACKEND;
+        }
+      } catch (e) {
+        // localhost unreachable — fall through
+      }
+      console.log("[CarLens] Using deployed backend");
+      return DEPLOYED_BACKEND;
+    })();
+    return _backendBasePromise;
+  }
 
   // Track the current URL for SPA navigation detection
   let lastUrl = window.location.href;
@@ -155,7 +179,8 @@
       console.log("[CarLens] Extracted data:", carData);
       console.log("[CarLens] Mode:", mode);
 
-      const response = await fetch(BACKEND_URL, {
+      const backendBase = await resolveBackendBase();
+      const response = await fetch(`${backendBase}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(carData),
@@ -172,7 +197,7 @@
       renderResults(result);
     } catch (err) {
       console.error("[CarLens] Error:", err);
-      errorDiv.textContent = `Error: ${err.message}. Make sure the CarLens backend is running.`;
+      errorDiv.textContent = `Error: ${err.message}. The CarLens backend may be unreachable.`;
       errorDiv.style.display = "block";
       btn.style.display = "block";
     } finally {
@@ -222,5 +247,13 @@
   // ── Init ──────────────────────────────────────────────────────────
 
   createOverlay();
+  // Warm up the backend early — resolveBackendBase pings localhost,
+  // and if it falls through to the deployed URL, fire a /health ping
+  // to wake the Render free-tier instance before the user clicks Analyze.
+  resolveBackendBase().then((base) => {
+    if (base === DEPLOYED_BACKEND) {
+      fetch(`${base}/health`).catch(() => {});
+    }
+  });
   watchForNavigation();
 })();

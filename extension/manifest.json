@@ -9,6 +9,7 @@
   ],
   "host_permissions": [
     "http://localhost:5000/*",
+    "https://car-lens.onrender.com/*",
     "*://*.carfax.com/*"
   ],
   "content_scripts": [
