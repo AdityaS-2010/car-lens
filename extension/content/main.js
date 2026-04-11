@@ -89,6 +89,7 @@
 
   async function analyzeListing() {
     const btn = document.getElementById("carlens-analyze-btn");
+    const labBtn = document.getElementById("carlens-comps-lab-btn");
     const loading = document.getElementById("carlens-loading");
     const results = document.getElementById("carlens-results");
     const errorDiv = document.getElementById("carlens-error");
@@ -99,6 +100,7 @@
     const mode = activeMode ? activeMode.dataset.mode : "brief";
 
     btn.style.display = "none";
+    if (labBtn) labBtn.style.display = "none";
     loading.style.display = "flex";
     results.style.display = "none";
     errorDiv.style.display = "none";
@@ -162,7 +164,7 @@
         try {
           compsData = await fetchComparablePrices(
             carData.make, carData.model, carData.year, carData.location,
-            carData.price, carData.mileage
+            carData.price, carData.mileage, carData.vin, carData.trim
           );
           if (compsData && compsData.count >= 2) {
             carData.comparable_prices = compsData;
@@ -200,6 +202,7 @@
       errorDiv.textContent = `Error: ${err.message}. The CarLens backend may be unreachable.`;
       errorDiv.style.display = "block";
       btn.style.display = "block";
+      if (labBtn) labBtn.style.display = "none";
     } finally {
       clearInterval(factInterval);
       CarLensGame.stop();
@@ -211,8 +214,69 @@
     }
   }
 
+  async function testComparableListings() {
+    const analyzeBtn = document.getElementById("carlens-analyze-btn");
+    const labBtn = document.getElementById("carlens-comps-lab-btn");
+    const loading = document.getElementById("carlens-loading");
+    const results = document.getElementById("carlens-results");
+    const errorDiv = document.getElementById("carlens-error");
+
+    analyzeBtn.style.display = "none";
+    if (labBtn) labBtn.style.display = "none";
+    loading.style.display = "flex";
+    results.style.display = "none";
+    errorDiv.style.display = "none";
+
+    setStep("extract", "active");
+    setStep("report", "hidden");
+    setStep("comps", "pending");
+    setStep("ai", "hidden");
+
+    try {
+      expandDropdowns();
+      await new Promise((r) => setTimeout(r, 800));
+
+      const carData = await extractCarData();
+      console.log("[CarLens Lab] Extracted data:", carData);
+      setStep("extract", "done");
+
+      setStep("comps", "active");
+      const labResult = await fetchComparablePricesLab(carData);
+      setStep("comps", "done");
+
+      console.log("[CarLens Lab] Comparable listings test result:", labResult);
+      if (labResult && labResult.result && labResult.result.listings) {
+        console.table(labResult.result.listings.map((l) => ({
+          title: l.title,
+          price: l.price,
+          year: l.year,
+          mileage: l.mileage,
+          url: l.url,
+        })));
+      }
+
+      results.innerHTML = `
+        <div class="carlens-tldr">
+          <p>Similar listings test finished. Check DevTools for the extracted input, raw result, and listing table.</p>
+        </div>
+        <button id="carlens-reanalyze-btn">Back</button>
+      `;
+      document.getElementById("carlens-reanalyze-btn").addEventListener("click", resetOverlay);
+      results.style.display = "block";
+    } catch (err) {
+      console.error("[CarLens Lab] Error:", err);
+      errorDiv.textContent = `Comps lab error: ${err.message}`;
+      errorDiv.style.display = "block";
+      analyzeBtn.style.display = "block";
+      if (labBtn) labBtn.style.display = "none";
+    } finally {
+      loading.style.display = "none";
+    }
+  }
+
   // Make analyzeListing available to ui.js event listener
   window._carlensAnalyze = analyzeListing;
+  window._carlensTestComps = testComparableListings;
 
   // ── SPA Navigation Detection ──────────────────────────────────────
 

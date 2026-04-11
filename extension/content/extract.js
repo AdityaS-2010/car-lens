@@ -40,6 +40,55 @@ function waitForElement(selector, timeout = 5000) {
   });
 }
 
+// Small parser hints for model names that commonly look like separate trim words
+// in CARFAX title text. This is only a best-effort extraction cleanup; the
+// CARFAX model dropdown remains the source of truth for comparable searches.
+const MULTI_TOKEN_MODEL_PREFIXES = [
+  "Grand Cherokee",
+  "Range Rover",
+  "Land Cruiser",
+  "MX-5 Miata",
+];
+
+function splitModelAndTrim(_make, modelCandidate, trimCandidate, titleRemainder) {
+  const rest = (titleRemainder || "").replace(/\s+/g, " ").trim();
+  let model = (modelCandidate || "").replace(/\s+/g, " ").trim();
+  let trim = (trimCandidate || "").replace(/\s+/g, " ").trim();
+
+  if (!rest) return { model: model || null, trim: trim || null };
+
+  const knownSeriesMatch = rest.match(/^(\d+\s+Series)\s+(.+)$/i);
+  if (knownSeriesMatch) {
+    return { model: knownSeriesMatch[1], trim: knownSeriesMatch[2] };
+  }
+
+  const knownClassMatch = rest.match(/^([A-Z]{1,3}[-\s]?Class)\s+(.+)$/i);
+  if (knownClassMatch) {
+    return { model: knownClassMatch[1].replace(/\s+Class/i, "-Class"), trim: knownClassMatch[2] };
+  }
+
+  const hyphenatedModelMatch = rest.match(/^([A-Z]+-\d{1,3})\s+(.+)$/i);
+  if (hyphenatedModelMatch) {
+    return { model: hyphenatedModelMatch[1], trim: hyphenatedModelMatch[2] };
+  }
+
+  for (const knownModel of MULTI_TOKEN_MODEL_PREFIXES) {
+    const escaped = knownModel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = rest.match(new RegExp("^(" + escaped + ")(?:\\s+(.+))?$", "i"));
+    if (match) return { model: match[1], trim: match[2] || trim || null };
+  }
+
+  if (model && rest.toLowerCase().startsWith(model.toLowerCase() + " ")) {
+    return { model, trim: rest.slice(model.length).trim() || trim || null };
+  }
+
+  const parts = rest.split(/\s+/);
+  return {
+    model: parts[0] || model || null,
+    trim: parts.length > 1 ? parts.slice(1).join(" ") : (trim || null),
+  };
+}
+
 // ── JSON-LD / Schema.org Extraction ─────────────────────────────────
 
 function extractStructuredData() {
@@ -177,14 +226,9 @@ async function extractCarData() {
     if (!year) year = parseInt(titleMatch[1]);
     if (!make) make = titleMatch[2];
     const rest = titleMatch[3].trim();
-    if (!model) {
-      const parts = rest.split(/\s+/);
-      model = parts[0];
-      if (parts.length > 1) trim = parts.slice(1).join(" ");
-    } else if (!trim) {
-      const trimText = rest.replace(model, "").trim();
-      if (trimText) trim = trimText;
-    }
+    const split = splitModelAndTrim(make, model, trim, rest);
+    model = split.model;
+    trim = split.trim;
   }
 
   if (!year || !make || !model) {
@@ -558,12 +602,12 @@ async function fetchReportData(reportUrl) {
 
 // ── Fetch Comparable Prices via Background Tab ──────────────────────
 
-async function fetchComparablePrices(make, model, year, location, price, mileage) {
-  console.log("[CarLens] Requesting comparable prices:", { make, model, year, location, price, mileage });
+async function fetchComparablePrices(make, model, year, location, price, mileage, vin, trim) {
+  console.log("[CarLens] Requesting comparable prices:", { make, model, year, location, price, mileage, vin, trim });
 
   return new Promise((resolve) => {
     chrome.runtime.sendMessage(
-      { type: "FETCH_COMPARABLE_PRICES", make, model, year, location, price, mileage },
+      { type: "FETCH_COMPARABLE_PRICES", make, model, year, location, price, mileage, vin, trim },
       (response) => {
         if (chrome.runtime.lastError) {
           console.warn("[CarLens] Comps message error:", chrome.runtime.lastError.message);
@@ -571,6 +615,24 @@ async function fetchComparablePrices(make, model, year, location, price, mileage
           return;
         }
         resolve(response || null);
+      }
+    );
+  });
+}
+
+async function fetchComparablePricesLab(carData) {
+  console.log("[CarLens Lab] Requesting comparable prices only:", carData);
+
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(
+      { type: "FETCH_COMPARABLE_PRICES_LAB", car: carData },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          console.warn("[CarLens Lab] Comps message error:", chrome.runtime.lastError.message);
+          resolve({ input: carData, result: null, error: chrome.runtime.lastError.message });
+          return;
+        }
+        resolve(response || { input: carData, result: null, error: "No response from background" });
       }
     );
   });

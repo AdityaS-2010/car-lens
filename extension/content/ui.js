@@ -38,6 +38,7 @@ function createOverlay() {
         <button class="carlens-mode-btn" data-mode="detailed">Deep Dive</button>
       </div>
       <button id="carlens-analyze-btn">Analyze This Listing</button>
+      <button id="carlens-comps-lab-btn" hidden>Test Similar Listings</button>
       <div id="carlens-loading" style="display:none;">
         <div class="carlens-progress-steps">
           <div class="carlens-step" data-step="extract">
@@ -89,6 +90,10 @@ function createOverlay() {
   // analyzeListing is defined in main.js — bind via deferred lookup
   document.getElementById("carlens-analyze-btn").addEventListener("click", () => {
     if (window._carlensAnalyze) window._carlensAnalyze();
+  });
+
+  document.getElementById("carlens-comps-lab-btn").addEventListener("click", () => {
+    if (window._carlensTestComps) window._carlensTestComps();
   });
 
   // Mode toggle
@@ -185,6 +190,7 @@ function setupResize(overlay) {
 
 function resetOverlay() {
   const btn = document.getElementById("carlens-analyze-btn");
+  const labBtn = document.getElementById("carlens-comps-lab-btn");
   const loading = document.getElementById("carlens-loading");
   const results = document.getElementById("carlens-results");
   const errorDiv = document.getElementById("carlens-error");
@@ -195,6 +201,7 @@ function resetOverlay() {
 
   btn.style.display = "block";
   btn.textContent = "Analyze This Listing";
+  if (labBtn) labBtn.style.display = "none";
   loading.style.display = "none";
   results.style.display = "none";
   results.innerHTML = "";
@@ -207,6 +214,67 @@ function resetOverlay() {
   overlay.style.display = "flex";
   overlay.style.height = "";
   overlay.style.maxHeight = "";
+}
+
+function renderCompsLabResults(data) {
+  const resultsDiv = document.getElementById("carlens-results");
+  const payload = data || {};
+  const input = payload.input || {};
+  const result = payload.result || {};
+  const listings = result.listings || [];
+
+  resultsDiv.innerHTML = `
+    <div class="carlens-tldr">
+      <p>Similar listings test completed. Gemini and the report fetch were skipped.</p>
+    </div>
+    <div class="carlens-card">
+      <button class="carlens-card-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        Extracted Input
+        <span class="carlens-card-chevron">&#9660;</span>
+      </button>
+      <div class="carlens-card-body">
+        <pre id="carlens-comps-lab-input" class="carlens-debug-pre"></pre>
+      </div>
+    </div>
+    <div class="carlens-card">
+      <button class="carlens-card-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        Comparable Listings
+        <span style="margin-left:auto;font-size:11px;color:#999;font-weight:400;">${result.count || 0}</span>
+        <span class="carlens-card-chevron">&#9660;</span>
+      </button>
+      <div class="carlens-card-body">
+        ${payload.error ? `<p class="carlens-summary">Error: ${payload.error}</p>` : ""}
+        <p class="carlens-summary">
+          Searched for ${input.year || ""} ${input.make || ""} ${input.model || ""}${input.trim ? " " + input.trim : ""}<br/>
+          Average: ${result.avg ? "$" + result.avg.toLocaleString() : "N/A"}
+        </p>
+        <ul class="carlens-list carlens-intel-list">
+          ${listings.map((l) => {
+            const name = l.title || "Listing";
+            const price = l.price ? "$" + l.price.toLocaleString() : "N/A";
+            const mi = l.mileage ? ` - ${l.mileage.toLocaleString()} mi` : "";
+            const link = l.url ? ` <a href="${l.url}" target="_blank" rel="noopener" class="carlens-comp-link">View</a>` : "";
+            return `<li><strong>${price}</strong> ${name}${mi}${link}</li>`;
+          }).join("")}
+        </ul>
+      </div>
+    </div>
+    <div class="carlens-card collapsed">
+      <button class="carlens-card-header" onclick="this.parentElement.classList.toggle('collapsed')">
+        Raw Result
+        <span class="carlens-card-chevron">&#9660;</span>
+      </button>
+      <div class="carlens-card-body">
+        <pre id="carlens-comps-lab-raw" class="carlens-debug-pre"></pre>
+      </div>
+    </div>
+    <button id="carlens-reanalyze-btn">Back</button>
+  `;
+
+  document.getElementById("carlens-comps-lab-input").textContent = JSON.stringify(input, null, 2);
+  document.getElementById("carlens-comps-lab-raw").textContent = JSON.stringify(payload, null, 2);
+  document.getElementById("carlens-reanalyze-btn").addEventListener("click", resetOverlay);
+  resultsDiv.style.display = "block";
 }
 
 // ── Verdict Badge Helper ────────────────────────────────────────────
